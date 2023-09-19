@@ -117,7 +117,7 @@ WHERE numero_documento IN ("11453265", "74142585", "49985471");
 /*Los clientes cuyos DNI son: 87952514, 55869321, 74142585 han perdido su celuLar por lo tanto tienen que estar en blanco*/
 UPDATE CLIENTE
 SET celular = " "
-WHERE numero_documento IN ("15352585", "53298147", "41552567");
+WHERE numero_documento IN ("87952514", "55869321", "74142585");
 
 /*El cliente Oscar César Quiroz Zavala será reactivado y debemos actualizar su nuevo correo: oscar.quiroz@yahoo.es */
 UPDATE CLIENTE
