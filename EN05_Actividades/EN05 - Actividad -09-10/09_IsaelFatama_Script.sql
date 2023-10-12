@@ -9,7 +9,7 @@ CREATE TABLE PERSONA (
     telefono CHAR(9) NULL COMMENT 'En este campo irá el número telefónico de la persona que envia el formulario.',
     CONSTRAINT PERSONA_pk PRIMARY KEY (id)
 )  COMMENT 'Tabla de datos de las personas que envien el formulario';
-
+SELECT * FROM PERSONA;
 CREATE TABLE MENSAJE (
 		id int  NOT NULL auto_increment,
 		asunto varchar(100)  NULL COMMENT 'Asunto por el cual la persona a enviado el formulario',
@@ -19,6 +19,7 @@ CREATE TABLE MENSAJE (
 		CONSTRAINT MENSAJE_pk PRIMARY KEY (id)
 	) COMMENT 'Iran los datos del mensaje que envia la persona.';
 
+DROP TABLE MENSAJE;
 ALTER TABLE MENSAJE ADD CONSTRAINT MENSAJE_PERSONA FOREIGN KEY MENSAJE_PERSONA (persona_id)
 		REFERENCES PERSONA (id);
       
@@ -43,16 +44,27 @@ INSERT INTO MENSAJE (asunto, mensaje, fecha, persona_id) VALUES
     ('Consulta sobre matrícula', '¿Cuál es el proceso de matrícula para estudiantes nuevos?', NOW(), 4),
     ('Actividades extracurriculares', '¿Ofrecen actividades extracurriculares para los estudiantes?', NOW(), 5);
 
+select * FROM MENSAJE;
 -- Actualización de registros en la tabla PERSONA
 UPDATE PERSONA SET telefono = '945960978' WHERE id = 1;
 UPDATE PERSONA SET email = 'juan.perez@gmail.com' WHERE id = 4;
+UPDATE PERSONA SET apellidos = 'García Pérez' WHERE id = 7;
+UPDATE PERSONA SET nombres = 'Fernando', telefono = '977665500' WHERE id = 10;
+UPDATE PERSONA SET nombres = 'María José', email = 'mariajose@example.com' WHERE id = 2;
 
 -- Consulta (listar) registros en la tabla MENSAJE
 SELECT * FROM MENSAJE WHERE persona_id = 1;
 SELECT asunto, fecha FROM MENSAJE WHERE fecha > '2023-10-01';
+SELECT * FROM MENSAJE WHERE persona_id = 3;
+SELECT asunto, mensaje FROM MENSAJE WHERE persona_id = 5 AND fecha > '2023-10-01';
+SELECT * FROM MENSAJE WHERE persona_id = 2;
+
 
 -- Eliminación de registros en la tabla MENSAJE
 DELETE FROM MENSAJE WHERE id = 1;
 DELETE FROM MENSAJE WHERE fecha < '2023-10-12';
+DELETE FROM MENSAJE WHERE persona_id = 4;
+DELETE FROM MENSAJE WHERE id = 3;
+DELETE FROM MENSAJE WHERE asunto LIKE '%inactivo%';
 
 SET SQL_SAFE_UPDATES = 0;
