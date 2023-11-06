@@ -480,20 +480,201 @@ FROM VENTA V
     JOIN CLIENTE CA ON V.CodigoCliente = CA.Codigo
     JOIN EMPLEADO EA ON V.CodigoEmpleado = EA.Codigo;
 
+SELECT * FROM VENTA;
+
 /* 06. Crear la tabla VENTA DETALLE teniendo como referencia lo siguiente: */
 
 -- El identificador de la Venta Detalle será autoincrementable y empezará en 100. */
 
 -- Sólo se pueden vender productos que existen en la tabla producto, la cantidad mínima de venta es 1 */
 
+CREATE TABLE
+    VENTA_DETALLE (
+        IDVentaDetalle INT AUTO_INCREMENT PRIMARY KEY,
+        IDVenta INT,
+        IDProducto CHAR(3),
+        Cantidad INT NOT NULL CHECK (Cantidad >= 1),
+        FOREIGN KEY (IDVenta) REFERENCES VENTA(CodigoVenta),
+        FOREIGN KEY (IDProducto) REFERENCES PRODUCTO(Codigo)
+    );
+
+ALTER TABLE VENTA_DETALLE AUTO_INCREMENT = 100;
+
+INSERT INTO
+    venta_detalle(IDVENTA, IDProducto, Cantidad)
+VALUES ('1', 'P02', '3'), ('1', 'P04', '2'), ('2', 'P08', '1'), ('3', 'P07', '3'), ('3', 'P01', '2'), ('3', 'P05', '5');
+
+SELECT
+    VD.IDVenta,
+    VD.IDVentaDetalle,
+    P.Producto,
+    VD.Cantidad
+FROM VENTA_DETALLE VD
+    JOIN PRODUCTO P ON VD.IDProducto = P.Codigo;
+
 /* 07. Establecer las siguientes relaciones entre las tablas: */
+
+-- Relación entre VENTA y CLIENTE
+
+ALTER TABLE VENTA
+ADD
+    CONSTRAINT VENTA_CLIENTE FOREIGN KEY (CodigoCliente) REFERENCES CLIENTE(codigo);
+
+-- Relación entre VENTA y EMPLEADO
+
+ALTER TABLE VENTA
+ADD
+    CONSTRAINT VENTA_EMPLEADO FOREIGN KEY (CodigoEmpleado) REFERENCES EMPLEADO(Codigo);
+
+-- Relación entre VENTA_DETALLE y PRODUCTO
+
+ALTER TABLE VENTA_DETALLE
+ADD
+    CONSTRAINT VENTA_DETALLE_PRODUCTO FOREIGN KEY (IDProducto) REFERENCES PRODUCTO(Codigo);
+
+-- Relación entre VENTA_DETALLE y VENTA
+
+ALTER TABLE VENTA_DETALLE
+ADD
+    CONSTRAINT VENTA_DETALLE_VENTA FOREIGN KEY (IDVenta) REFERENCES VENTA(CodigoVenta);
+
+SELECT
+    CONSTRAINT_NAME,
+    TABLE_NAME,
+    COLUMN_NAME,
+    REFERENCED_TABLE_NAME,
+    REFERENCED_COLUMN_NAME
+FROM
+    INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE
+    TABLE_SCHEMA = 'HandsLabs'
+    AND REFERENCED_TABLE_NAME IS NOT NULL;
 
 /* 08. Agregar la fecha de nacimiento de los siguientes CLIENTES de acuerdo a lo siguiente: */
 
+ALTER TABLE CLIENTE ADD COLUMN FechaNacimiento DATE;
+
+UPDATE CLIENTE
+SET
+    FechaNacimiento = CASE
+        WHEN codigo = 'C01' THEN '1990-10-20'
+        WHEN codigo = 'C05' THEN '1995-03-15'
+        WHEN codigo = 'C06' THEN '1997-02-14'
+        WHEN codigo = 'C03' THEN '1985-07-20'
+        WHEN codigo = 'C09' THEN '1997-04-12'
+        ELSE NULL
+    END
+WHERE
+    codigo IN (
+        'C01',
+        'C05',
+        'C06',
+        'C03',
+        'C09'
+    );
+
+SELECT
+    CONCAT(apellidos, ', ', nombres) AS 'CLIENTE',
+    dni AS 'DNI',
+    DATE_FORMAT(
+        FechaNacimiento,
+        '%d - %M - %Y'
+    ) AS 'FECHA DE NACIMIENTO'
+FROM CLIENTE
+WHERE
+    codigo IN (
+        'C01',
+        'C05',
+        'C06',
+        'C03',
+        'C09'
+    );
+
 /* 09. Dos empleados han renunciado a la empresa, por tanto hay que eliminarlos lógicamente: */
+
+UPDATE EMPLEADO SET Estado = 'I' WHERE Codigo IN ('E01', 'E02');
+
+SELECT
+    CONCAT(Apellidos, ', ', Nombres) AS 'EMPLEADO',
+    CASE TipoEmpleado
+        WHEN 'V' THEN 'Vendedor'
+        WHEN 'A' THEN 'Administrador'
+        ELSE 'TIPO EMPLEADO'
+    END AS 'CARGO',
+    CASE Estado
+        WHEN 'A' THEN 'Activo'
+        WHEN 'I' THEN 'Inactivo'
+        ELSE 'ESTADO DESCONOCIDO'
+    END AS 'ESTADO'
+FROM EMPLEADO;
 
 /* 10. Actualizar el stock y precio de los siguientes productos de acuerdo a la imagen: */
 
+UPDATE PRODUCTO
+SET
+    Stock = CASE
+        WHEN Codigo = 'P01' THEN 80
+        WHEN Codigo = 'P05' THEN 150
+        WHEN Codigo = 'P08' THEN 120
+        ELSE Stock
+    END,
+    Precio = CASE
+        WHEN Codigo = 'P01' THEN 40.35
+        WHEN Codigo = 'P05' THEN 625.35
+        WHEN Codigo = 'P08' THEN 65.85
+        ELSE Precio
+    END
+WHERE
+    Codigo IN ('P01', 'P05', 'P08');
+
+SELECT
+    Codigo,
+    Producto,
+    Stock,
+    Precio
+FROM PRODUCTO
+WHERE
+    Codigo IN ('P01', 'P05', 'P08');
+
+----------------------------------------------------------------
+
 /* 11. En la tabla EMPLEADO agregar columna y obtener el sueldo de acuerdo a las horas trabajadas y el pago por hora: */
 
+ALTER TABLE EMPLEADO ADD Sueldo DECIMAL(10, 2);
+
+UPDATE EMPLEADO SET Sueldo = NumHoras * PagoPorHora;
+
+SELECT
+    CONCAT(Apellidos, ', ', Nombres) AS "EMPLEADO",
+    NumHoras AS "HORAS TRABAJADAS",
+    PagoPorHora AS "PAGO X HORA", (NumHoras * PagoPorHora) AS "SUELDO",
+    CASE
+        WHEN TipoEmpleado = 'V' THEN 'Vendedor'
+        WHEN TipoEmpleado = 'A' THEN 'Administrador'
+        ELSE NULL
+    END AS "CARGO"
+FROM EMPLEADO;
+
 /* 12. Obtener el monto a pagar por cada producto vendido. */
+
+SELECT
+    V.CodigoVenta AS "VENTA",
+    P.Producto AS "PRODUCTO",
+    VD.Cantidad AS "CANTIDAD", (VD.Cantidad * P.Precio) AS "MONTO"
+FROM VENTA V
+    JOIN VENTA_DETALLE VD ON V.CodigoVenta = VD.IDVenta
+    JOIN PRODUCTO P ON VD.IDProducto = P.Codigo;
+
+----------------------------------------------------------------
+
+--BORRAR FK
+
+-- Para la tabla "VENTA"
+
+ALTER TABLE
+    VENTA DROP FOREIGN KEY venta_ibfk_1,
+    DROP FOREIGN KEY venta_ibfk_2;
+
+ALTER TABLE
+    VENTA_DETALLE DROP FOREIGN KEY venta_detalle_ibfk_1,
+    DROP FOREIGN KEY venta_detalle_ibfk_2;
